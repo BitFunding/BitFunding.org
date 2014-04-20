@@ -32,7 +32,11 @@ object BitfundingBuild extends Build {
         "org.squeryl" %% "squeryl" % "0.9.5-6", 
         "com.h2database" % "h2" % "1.3.166",
         "c3p0" % "c3p0" % "0.9.1.2",
-        "postgresql" % "postgresql" % "9.1-901-1.jdbc4"
+        "postgresql" % "postgresql" % "9.1-901-1.jdbc4",
+        "com.google.http-client" % "google-http-client" % "1.18.0-rc",
+        "com.google.http-client" % "google-http-client-jackson" % "1.18.0-rc",
+        "com.google.oauth-client" % "google-oauth-client" % "1.8.0-beta",
+        "com.google.api-client" % "google-api-client" % "1.18.0-rc"
       ),
       scalateTemplateConfig in Compile <<= (sourceDirectory in Compile){ base =>
         Seq(

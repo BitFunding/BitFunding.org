@@ -1,7 +1,7 @@
 package org.bitfunding.app.init
 
 import com.mchange.v2.c3p0.ComboPooledDataSource
-import org.squeryl.adapters.{H2Adapter, MySQLAdapter}
+import org.squeryl.adapters.{PostgreSqlAdapter, MySQLAdapter}
 import org.squeryl.Session
 import org.squeryl.SessionFactory
 import org.slf4j.LoggerFactory
@@ -35,8 +35,13 @@ trait DatabaseInit {
 
     def connection = {
       //logger.info("Creating connection with c3po connection pool")
-      Session.create(cpds.getConnection, new H2Adapter)
+      Session.create(cpds.getConnection, new PostgreSqlAdapter)
     }
+  }
+
+  def bind = {
+
+    Session.create(cpds.getConnection, new PostgreSqlAdapter).bindToCurrentThread
   }
 
   def closeDbConnection() {

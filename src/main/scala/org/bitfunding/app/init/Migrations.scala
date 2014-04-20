@@ -7,7 +7,6 @@ import com.imageworks.migration.{DatabaseAdapter,
                                  Migrator}
 
 import org.postgresql.ds.PGSimpleDataSource
-import org.bitfunding.app.init.dbConfig
 
 object migrations{
 

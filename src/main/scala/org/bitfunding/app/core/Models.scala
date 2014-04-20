@@ -18,5 +18,5 @@ class User(
 
 object Library extends Schema{
 
-  val users = table[User]
+  val users = table[User]("user")
 }
