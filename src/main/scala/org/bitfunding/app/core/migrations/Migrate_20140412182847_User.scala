@@ -8,7 +8,8 @@ import com.imageworks.migration.{
   OnDelete,
   Restrict,
   Unique,
-  PrimaryKey
+  PrimaryKey,
+  AutoIncrement
 }
 
 /**
@@ -25,9 +26,9 @@ class Migrate_20140412182847_User
 
   def up() {
     createTable(tableName) { t =>
-      t.bigint("id", NotNull, PrimaryKey)
-      t.varchar("username", NotNull, Limit(24))
-      t.varchar("email", NotNull, Limit(64))
+      t.bigint("id", NotNull, PrimaryKey, AutoIncrement)
+      t.varchar("username", Unique, NotNull, Limit(64))
+      t.varchar("email", Unique, NotNull, Limit(64))
       t.varchar("password", Limit(255))
     }
   }
