@@ -5,6 +5,7 @@ import javax.servlet.http.HttpServletRequest
 import org.bitfunding.app.core.User
 import org.bitfunding.app.core.Library._
 import org.squeryl.PrimitiveTypeMode._
+import javax.servlet.ServletContext
 
 trait BitfundingAuth{
   
@@ -34,31 +35,31 @@ class Auth(
 ){
 
   val googleOAuth = new GoogleOAuth(authUrl)
-  val usernameArg = "user:username"
+  val usernameArg = "BitFundingUser"
 
   def loginServices() = Seq(
 
     ("Google", this.googleOAuth.redirectUrl())
   )
 
-  def getUser(cookies : SweetCookies) : Option[User] = {
+  def getUser(session : ServletContext) : Option[User] = {
 
     for{
 
-      username <- cookies.get(this.usernameArg)
+      username <- Option.apply(session.getAttribute(this.usernameArg)).asInstanceOf[Option[String]]
       user <- from(users)(u => where(u.username === username) select u).headOption
     } yield user
   }
 
-  def isUser(cookies : SweetCookies) : Boolean = {
-    this.getUser(cookies).nonEmpty
+  def isUser(session : ServletContext) : Boolean = {
+    this.getUser(session).nonEmpty
   }
 
   def authenticate(
     service : String, 
     code_ : Option[String], 
     state_ : Option[String],
-    cookies : SweetCookies) = {
+    session : ServletContext) = {
 
     for{
 
@@ -68,7 +69,7 @@ class Auth(
 
         case this.googleOAuth.service => this.googleOAuth.authUser(code, state)
       }
-      res <- Some(cookies.set(this.usernameArg, user.username))
+      res <- Some(session.setAttribute(this.usernameArg, user.username))
     } yield user
   }
 

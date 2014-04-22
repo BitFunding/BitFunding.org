@@ -14,17 +14,27 @@ import com.google.api.client.auth.oauth2.{
 import scala.collection.JavaConversions._
 import scala.collection.mutable.ListBuffer
 import org.bitfunding.app.init.DatabaseSessionSupport
+import scala.concurrent.duration._
+import scala.concurrent.Await
+import dispatch.{Http => DispatchHttp, _}
+import java.util.concurrent.TimeoutException
+import scala.util.parsing.json.JSON.parseFull
+import Defaults._
 
 class GoogleOAuth(authUrl_ : String) extends BitfundingAuth{
 
   val authUrl = authUrl_
+
+  val dataUrl = "https://www.googleapis.com/oauth2/v1/userinfo"
 
   val oauth = new GoogleAuthorizationCodeFlow.Builder(
     new NetHttpTransport(),
     new JacksonFactory(),
     "985951757831-lu4pht8550ubgn5meq65fbnk4nssm9gi.apps.googleusercontent.com",
     "2TKn6Pe8y82EUP03K_sr2aY3",
-    ListBuffer("https://www.googleapis.com/auth/plus.me", "https://www.googleapis.com/auth/plus.profile.emails.read") : java.util.List[String])
+    ListBuffer(
+      "https://www.googleapis.com/auth/plus.login",
+      "https://www.googleapis.com/auth/userinfo.email") : java.util.List[String])
     .setApprovalPrompt("force")
     .build()
 
@@ -33,12 +43,21 @@ class GoogleOAuth(authUrl_ : String) extends BitfundingAuth{
   def authUser(code : String, state : String) = {
 
     try{
-      val token = oauth.newTokenRequest(code).setRedirectUri(this.authUrl + this.service + "/").execute
-      val creds = new GoogleCredential().setFromTokenResponse(token)
-      val email = creds.getServiceAccountUser()
-      Some(getOrCreate(email))
+      val token = oauth.newTokenRequest(code).setRedirectUri(
+        this.authUrl + this.service + "/").execute
+      val req = DispatchHttp(url(this.dataUrl).GET.setQueryParameters(Map(
+        "alt" -> Seq("json"),
+        "access_token" -> Seq(token.get("access_token").asInstanceOf[String])
+      )))
+      val res = Await.result(req, 20 seconds)
+      for{
+        creds <- parseFull(res.getResponseBody)
+        email <- creds.asInstanceOf[Map[String,String]].get("email")
+        user <- Some(this.getOrCreate(email))
+      } yield user
     }catch{
       case ex : TokenResponseException => None
+      case ex : TimeoutException => None
     }
   }
 

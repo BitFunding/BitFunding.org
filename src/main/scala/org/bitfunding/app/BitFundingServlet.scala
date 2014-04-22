@@ -21,7 +21,7 @@ class BitFundingServlet extends BitfundingStack
     ssp("/index", "logins" -> this.auth.loginServices(), "title" -> "q type safe pue...")
   }
 
-  val login = get("/logged", this.auth.isUser(cookies)) {
+  val login = get("/logged", this.auth.isUser(servletContext)) {
 
     <html>
       Hello!
@@ -34,7 +34,7 @@ class BitFundingServlet extends BitfundingStack
       params("service"), 
       params.get("code"),
       params.get("state"),
-      cookies) match{
+      servletContext) match{
       
       case Some(user) => this.redirect(this.url(this.login))
       case None =>  this.redirect("/") // Change to an error page
