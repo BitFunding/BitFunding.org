@@ -21,9 +21,10 @@ import java.util.concurrent.TimeoutException
 import scala.util.parsing.json.JSON.parseFull
 import Defaults._
 
-class GoogleOAuth(authUrl_ : String) extends BitfundingAuth{
+class GoogleOAuth(authUrlGen : String => String) extends BitfundingAuth{
 
-  val authUrl = authUrl_
+  val service = "google"
+  val authUrl = authUrlGen(this.service)
 
   val dataUrl = "https://www.googleapis.com/oauth2/v1/userinfo"
 
@@ -38,32 +39,39 @@ class GoogleOAuth(authUrl_ : String) extends BitfundingAuth{
     .setApprovalPrompt("force")
     .build()
 
-  val service = "google"
-
   def authUser(code : String, state : String) = {
 
-    try{
-      val token = oauth.newTokenRequest(code).setRedirectUri(
-        this.authUrl + this.service + "/").execute
-      val req = DispatchHttp(url(this.dataUrl).GET.setQueryParameters(Map(
-        "alt" -> Seq("json"),
-        "access_token" -> Seq(token.get("access_token").asInstanceOf[String])
-      )))
-      val res = Await.result(req, 20 seconds)
-      for{
-        creds <- parseFull(res.getResponseBody)
-        email <- creds.asInstanceOf[Map[String,String]].get("email")
-        user <- Some(this.getOrCreate(email))
-      } yield user
-    }catch{
-      case ex : TokenResponseException => None
-      case ex : TimeoutException => None
+    if(this.takeState(state).nonEmpty){
+      try{
+        this.states -= state
+        val token = oauth.newTokenRequest(code)
+          .setRedirectUri(this.authUrl)
+          .execute
+        val req = DispatchHttp(url(this.dataUrl).GET.setQueryParameters(Map(
+          "alt" -> Seq("json"),
+          "access_token" -> Seq(token.get("access_token").asInstanceOf[String])
+        )))
+        val res = Await.result(req, 20 seconds)
+        for{
+          creds <- parseFull(res.getResponseBody)
+          email <- creds.asInstanceOf[Map[String,String]].get("email")
+          user <- Some(this.getOrCreate(email))
+        } yield user
+      }catch{
+        case ex : TokenResponseException => None
+        case ex : TimeoutException => None
+      }
+
+    }else{
+      None
     }
   }
 
   def redirectUrl() = {
 
-    oauth.newAuthorizationUrl.setState("theState").setRedirectUri(this.authUrl + this.service + "/").build
+    val state = this.addState()
+    oauth.newAuthorizationUrl.setState(state)
+      .setRedirectUri(this.authUrl).build
   }
 
   def authenticate(auth : String) : Either[Credential, GoogleAuthorizationCodeRequestUrl] = {

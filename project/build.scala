@@ -37,7 +37,8 @@ object BitfundingBuild extends Build {
         "com.google.http-client" % "google-http-client-jackson" % "1.18.0-rc",
         "com.google.oauth-client" % "google-oauth-client" % "1.8.0-beta",
         "com.google.api-client" % "google-api-client" % "1.18.0-rc",
-        "net.databinder.dispatch" %% "dispatch-core" % "0.11.0"
+        "net.databinder.dispatch" %% "dispatch-core" % "0.11.0",
+        "com.github.nscala-time" %% "nscala-time" % "1.0.0"
       ),
       scalateTemplateConfig in Compile <<= (sourceDirectory in Compile){ base =>
         Seq(

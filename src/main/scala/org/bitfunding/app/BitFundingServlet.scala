@@ -14,7 +14,10 @@ class BitFundingServlet extends BitfundingStack
 
   val authPath = "/auth/"
 
-  lazy val auth = new Auth(this.baseUrl + this.authPath)
+  def authUrl(service : String) : String = {
+    this.baseUrl + this.url(this.authenticator, "service" -> service)}
+
+  lazy val auth = new Auth(this.authUrl)
 
   get("/") {
     contentType="text/html"
