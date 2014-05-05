@@ -2,6 +2,8 @@
 
 ## Build & Run ##
 
+* You must create a config file for OAuth and place it "src/main/webapp/WEB-INF/secrets.json" see "src/main/webapp/WEB-INF/secrets_example.json" for details about how the file should look like.
+
 ```sh
 $ cd BitFunding
 $ ./sbt
