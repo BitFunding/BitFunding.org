@@ -20,8 +20,10 @@ import dispatch.{Http => DispatchHttp, _}
 import java.util.concurrent.TimeoutException
 import scala.util.parsing.json.JSON.parseFull
 import Defaults._
+import org.bitfunding.app.init.OAuthSupport
 
-class GoogleOAuth(authUrlGen : String => String) extends BitfundingAuth{
+class GoogleOAuth(authUrlGen : String => String) extends BitfundingAuth 
+    with OAuthSupport{
 
   val service = "google"
   val authUrl = authUrlGen(this.service)
@@ -31,8 +33,8 @@ class GoogleOAuth(authUrlGen : String => String) extends BitfundingAuth{
   val oauth = new GoogleAuthorizationCodeFlow.Builder(
     new NetHttpTransport(),
     new JacksonFactory(),
-    "985951757831-lu4pht8550ubgn5meq65fbnk4nssm9gi.apps.googleusercontent.com",
-    "2TKn6Pe8y82EUP03K_sr2aY3",
+    this.oAuthConf.google_client,
+    this.oAuthConf.google_secret,
     ListBuffer(
       "https://www.googleapis.com/auth/plus.login",
       "https://www.googleapis.com/auth/userinfo.email") : java.util.List[String])

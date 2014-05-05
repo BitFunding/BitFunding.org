@@ -32,7 +32,6 @@ class BitFundingServlet extends BitfundingStack
   }
 
   val authenticator = get(this.authPath + ":service/"){
-
     this.auth.authenticate(
       params("service"), 
       params.get("code"),
